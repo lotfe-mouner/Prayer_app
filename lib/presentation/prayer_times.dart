@@ -18,8 +18,7 @@ class PrayerTimes extends StatefulWidget {
 class _PrayerTimesState extends State<PrayerTimes> {
   late final NotificationHelper service;
 
-  //List<bool> list = List.filled(6, false, growable: false);
-  List<int> valueList = [5, 10, 15];
+  List<int> valueList = [5, 10, 15, 20, 25, 30];
   int remindAt = 0;
   int minutes = 0;
 
@@ -119,16 +118,11 @@ class _PrayerTimesState extends State<PrayerTimes> {
                       minutes: remindAt,
                       sound: 'Pixie Dust',
                     );
-                    minutes = 0;
-                  }else{
+                  } else {
                     setState(() {
                       currentList[index] = !currentList[index];
                     });
                   }
-
-                  //  minutes=5;
-                  print(name);
-                  print(currentList[index]);
                 }
               },
             )
@@ -140,10 +134,10 @@ class _PrayerTimesState extends State<PrayerTimes> {
 
   Future showErrorDialog(BuildContext context) {
     return showDialog(
+      barrierDismissible: false,
       context: context,
       builder: (context) => AlertDialog(
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
         insetPadding: EdgeInsets.zero,
         title: const Text('Remind before:'),
         content: IntrinsicHeight(
@@ -187,9 +181,21 @@ class _PrayerTimesState extends State<PrayerTimes> {
               style: TextStyle(fontSize: 20),
             ),
             onPressed: () {
-              if(minutes ==0) minutes =5;
+              if (minutes == 0) minutes = 5;
               Navigator.of(context).pop();
-
+            },
+          ),
+          ElevatedButton(
+            style: ButtonStyle(
+              backgroundColor: MaterialStateProperty.all(Colors.redAccent),
+            ),
+            child: const Text(
+              "Close",
+              style: TextStyle(fontSize: 20),
+            ),
+            onPressed: () {
+              minutes = 0;
+              Navigator.of(context).pop();
             },
           ),
         ],
