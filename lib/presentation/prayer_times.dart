@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:prayer/bloc/data_cubit.dart';
+import 'package:prayer/model/prayer.dart';
 
-import '../bloc/payer_cubit.dart';
-import '../bloc/prayer_states.dart';
 import '../notification_service/notification_service.dart';
 import '../shared/shared_prefs.dart';
 import './Layout/main_layout.dart';
@@ -19,55 +19,85 @@ class _PrayerTimesState extends State<PrayerTimes> {
   late final NotificationHelper service;
 
   List<int> valueList = [5, 10, 15, 20, 25, 30];
+  int hour = 0;
   int remindAt = 0;
   int minutes = 0;
-
-  late List<bool> currentList;
+  List<bool> currentList = List.filled(6, false, growable: false);
+  List<Prayer>? prayerList = [];
 
   @override
   void initState() {
     service = NotificationHelper();
     service.initializeNotification();
-    currentList = PrayerCubit.get(context).list;
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<PrayerCubit, PrayerStates>(
-      listener: (context, state) {},
-      builder: (context, state) {
-        var prayerList = PrayerCubit.get(context).finalData;
-        print(currentList);
-        return Scaffold(
-          body: MainLayout(Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Text(
-                  DateFormat.yMMMMd().format(DateTime.now()),
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold, fontSize: 20),
+    return BlocConsumer<DataCubit, DataStates>(
+        listener: (context, state) {},
+        builder: (context, state) {
+          if (state is DataLoadingState) {
+            return MainLayout(
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      DateFormat.yMMMMd().format(DateTime.now()),
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 20),
+                    ),
+                    const Divider(
+                      height: 20,
+                      thickness: 2.0,
+                    ),
+                    Container(
+                      height: MediaQuery.of(context).size.height*0.5,
+                        width: MediaQuery.of(context).size.width,
+                        child: const Center(child: CircularProgressIndicator(),))
+                  ],
                 ),
-                const Divider(
-                  height: 30,
-                  thickness: 2.0,
-                ),
-                ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: prayerList?.length,
-                    itemBuilder: (ctx, index) => buildCard(
-                        prayerList![index].name,
-                        prayerList[index].time,
-                        prayerList[index].id,
-                        index)),
-              ],
-            ),
-          )),
-        );
-      },
-    );
+              ),
+            );
+          } else if (state is DataLoadedState) {
+            final prayerList = state.loadedData;
+            return MainLayout(Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    DateFormat.yMMMMd().format(DateTime.now()),
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 20),
+                  ),
+                  const Divider(
+                    height: 20,
+                    thickness: 2.0,
+                  ),
+                  ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: prayerList!.length,
+                      itemBuilder: (ctx, index) {
+                        return buildCard(
+                            prayerList[index].name,
+                            prayerList[index].time,
+                            prayerList[index].id,
+                            index);
+                      }),
+                ],
+              ),
+            ));
+          } else {
+            return const MainLayout(Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Center(
+                  child: Text('No Data is Loading'),
+                )));
+          }
+        });
   }
 
   Padding buildCard(String name, String? time, int id, int index) {
@@ -88,7 +118,7 @@ class _PrayerTimesState extends State<PrayerTimes> {
               ),
               textAlign: TextAlign.start,
             ),
-            Spacer(),
+            const Spacer(),
             Text(
               viewedTime,
               style: const TextStyle(
@@ -111,13 +141,19 @@ class _PrayerTimesState extends State<PrayerTimes> {
                     CacheHelper.putBoolean(
                         key: name, value: currentList[index]);
                     remindAt = int.parse(time!.split(':')[1]) - minutes;
-                    print(remindAt);
+                    hour = int.parse(time.split(':')[0]);
+                    print('the value of remindAt is $remindAt');
+                    if (remindAt < 0) {
+                      remindAt = remindAt + 60;
+                      hour = int.parse(time.split(':')[0]) - 1;
+                    }
                     service.scheduledNotification(
                       id: id,
-                      hour: int.parse(time!.split(':')[0]),
+                      hour: hour,
                       minutes: remindAt,
                       sound: 'Pixie Dust',
                     );
+                    minutes = 0;
                   } else {
                     setState(() {
                       currentList[index] = !currentList[index];
@@ -137,7 +173,8 @@ class _PrayerTimesState extends State<PrayerTimes> {
       barrierDismissible: false,
       context: context,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
         insetPadding: EdgeInsets.zero,
         title: const Text('Remind before:'),
         content: IntrinsicHeight(

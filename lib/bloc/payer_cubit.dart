@@ -13,13 +13,12 @@ class PrayerCubit extends Cubit<PrayerStates> {
   static PrayerCubit get(context) => BlocProvider.of(context);
 
   List<Widget> screens = [
-    PrayerTimes(),
-    Settings(),
+    const PrayerTimes(),
+    const Settings(),
   ];
   int currentIndex = 0;
-   List<Prayer>? finalData=[];
 
-  List<bool> list = List.filled(6, false, growable: false);
+  List<Prayer>? finalData = [];
 
   List<BottomNavigationBarItem> bottomItems = const [
     BottomNavigationBarItem(
@@ -30,20 +29,12 @@ class PrayerCubit extends Cubit<PrayerStates> {
 
   void changePage(index) {
     currentIndex = index;
-    if (index == 0) PrayerTimes();
-    if (index == 1) Settings();
+    if (index == 0) {
+      const PrayerTimes();
+    }
+    if (index == 1) const Settings();
     emit(BottomNavChange());
   }
 
-   fetchData() async {
-    try {
-      emit(PrayerDataLoading());
-       await ApiRepository.getData().then((values) => finalData=values);
-      emit(PrayersDataLoaded());
-    } catch (error) {
-      emit(PrayersErrors(error: error));
-      print(error);
-    }
-  }
 
 }

@@ -29,25 +29,25 @@ class MainLayout extends StatelessWidget {
                 child: Column(
                     children: [
                   /***************** top icons placed here ****************/
-                  const SizedBox(height: 200),
+                   SizedBox(height: MediaQuery.of(context).size.height*0.3,),
                   Expanded(
                       child: Container(
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.4),
-                      borderRadius: BorderRadius.vertical(top: Radius.circular(15.0)),
+                      color: Colors.white.withOpacity(0.5),
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(15.0)),
                     ),
                     child: ListView(
                       children: [
-                      //  Expanded(
-                      //   child:
+                       // Expanded(
+                       //   child:
                          Container(
-                            margin: const EdgeInsets.all(15.0),
+                            margin: const EdgeInsets.only(top: 15.0,right: 15.0,left: 15.0),
                             decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.5),
-                                borderRadius: BorderRadius.circular(15.0)),
+                                color: Colors.white.withOpacity(0.4),
+                                borderRadius:  const BorderRadius.all(Radius.circular(15.0))),
                             child: body,
                           ),
-                      //  ),
+                      // ),
                       ],
                     ),
                   )),
